@@ -32,15 +32,16 @@ if is_windows then
     --config.ssh_backend = "Ssh2" -- TODO check whether this is more stable than libssh
     config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
 else
-    --config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
+    config.window_decorations = "RESIZE"
     --config.window_decorations = "NONE"
-    --config.integrated_title_button_style = "Gnome"
+    config.integrated_title_button_style = "Gnome"
     config.default_prog = { os.getenv("SHELL") or "bash" }
 end
 
 -- Appearance
 -- "iTerm2 Tango Dark" or "iTerm2 Tango Light" also work well for some themes
-local theme = wez.color.get_builtin_schemes()[is_light and "Catppuccin Latte" or "Catppuccin Mocha"]
+local theme = wez.color.get_builtin_schemes()
+    [is_light and "Catppuccin Latte" or "Catppuccin Mocha"]
 assert(theme, "Color scheme not found")
 if is_light then
     config.window_background_opacity = 1.0
@@ -56,6 +57,7 @@ else
         theme.background = "#000000"
     else
         config.window_background_opacity = 1.0
+        --theme.background = "#010101"
     end
     -- config.foreground_text_hsb = {
     --     hue = 1.0,
@@ -80,7 +82,7 @@ else
         },
     }
 end
-config.command_palette_font_size = 12.0
+config.command_palette_font_size = 11.0
 config.command_palette_bg_color  = '#000000'
 config.color_schemes             = {
     ["User"] = theme
@@ -88,7 +90,7 @@ config.color_schemes             = {
 config.color_scheme              = "User"
 
 -- Misc
-config.enable_wayland            = true
+config.enable_wayland            = false
 --config.canonicalize_pasted_newlines               = 'None'
 config.term                      = 'wezterm'
 config.font                      = wez.font("JetBrainsMono Nerd Font", { weight = 400 })

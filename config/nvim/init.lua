@@ -462,11 +462,32 @@ require("lazy").setup({
       end,
       config = function()
         require("nvim-treesitter.configs").setup({
-          ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "python", "javascript" },
+          ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "python", "javascript", "markdown", "luadoc", "html", "css", "json", "yaml", "toml" },
           auto_install = true,
           sync_install = false,
           ignore_install = {},
-          highlight = { enable = true, additional_vim_regex_highlighting = true },
+          highlight = {
+            enable = true,
+            additional_vim_regex_highlighting = false,
+            disable = function(lang, buf)
+              local disabled = { "html", "css", "json", "yaml", "toml" }
+              for _, v in ipairs(disabled) do
+                if lang == v then
+                  return true
+                end
+              end
+              local max_filesize = 100 * 1024 -- 100 KB
+              local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+              if ok and stats and stats.size > max_filesize then
+                vim.notify(
+                  "File larger than 100KB treesitter disabled for performance",
+                  vim.log.levels.WARN,
+                  { title = "Treesitter" }
+                )
+                return true
+              end
+            end
+          },
           incremental_selection = {
             enable = true,
             keymaps = {
@@ -690,7 +711,7 @@ require("lazy").setup({
     -- mini.surround
     {
       "echasnovski/mini.surround",
-      event = "VeryLazy",
+      version = "*",
     },
     -- mini.ai
     {
