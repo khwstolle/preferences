@@ -130,6 +130,8 @@ require("lazy").setup({
     hererocks = true,
   },
   spec = {
+    -- NIO (async library)
+    { "nvim-neotest/nvim-nio" },
     -- clipboard (OSC52 support)
     -- https://github.com/ibhagwan/smartyank.nvim?tab=readme-ov-file#what-is-smartyank
     {
