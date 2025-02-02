@@ -143,8 +143,8 @@ end
 --          break
 --      end
 --  end
-config.webgpu_power_preference = "LowPower"
---config.max_fps = 120
+-- config.webgpu_power_preference = "LowPower"
+config.max_fps = 60
 config.front_end = "WebGpu"
 -- Bindings
 config.mouse_bindings = {

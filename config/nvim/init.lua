@@ -472,7 +472,7 @@ require("lazy").setup({
             enable = true,
             additional_vim_regex_highlighting = false,
             disable = function(lang, buf)
-              local disabled = { "html", "css", "json", "yaml", "toml" }
+              local disabled = { "html", "css", "json", "yaml", "toml", "perl", "latex", "latexmkrc" }
               for _, v in ipairs(disabled) do
                 if lang == v then
                   return true
