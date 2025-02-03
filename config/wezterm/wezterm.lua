@@ -39,9 +39,16 @@ else
 end
 
 -- Appearance
--- "iTerm2 Tango Dark" or "iTerm2 Tango Light" also work well for some themes
-local theme = wez.color.get_builtin_schemes()
-    [is_light and "Catppuccin Latte" or "Catppuccin Mocha"]
+-- "iTerm2 Tango Dark" or "iTerm2 Tango Light" also work well for some themselves
+local themeName = is_light and "Catppuccin Latte" or "Catppuccin Mocha"
+local theme = wez.color.get_builtin_schemes()[themeName]
+
+-- Specific adjustments
+if themeName == "Catppuccin Mocha" then
+    theme.background = "#13131F"
+end
+--
+-- Aspecific adjustments
 assert(theme, "Color scheme not found")
 if is_light then
     config.window_background_opacity = 1.0
