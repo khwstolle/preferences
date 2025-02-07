@@ -7,6 +7,7 @@ local keymap = vim.keymap
 -- utilities
 local is_windows = vim.fn.has('win32') == 1 or vim.fn.has('win64') == 1
 local home = vim.loop.os_homedir()
+local is_vscode = vim.g.vscode ~= nil
 
 -- cached plugin loader
 vim.loader.enable()
@@ -45,6 +46,9 @@ vim.g.node_host_prog = home .. '/.local/bin/nvim-node'
   },
 }
 ]]
+if is_vscode then
+  vim.g.clipboard = ""
+end
 
 -- autocomplete action
 opt.completeopt = "menu,menuone,noselect"
@@ -136,18 +140,14 @@ require("lazy").setup({
     -- https://github.com/ibhagwan/smartyank.nvim?tab=readme-ov-file#what-is-smartyank
     {
       'ibhagwan/smartyank.nvim',
-      cond = function()
-        return not vim.g.vscode
-      end,
+      cond = not is_vscode,
       lazy = false
     },
     -- themes
     {
       "catppuccin/nvim",
       lazy = true,
-      cond = function()
-        return not vim.g.vscode
-      end,
+      cond = not is_vscode,
       priority = 1000,
       name = "catppuccin",
       config = function()
@@ -179,9 +179,7 @@ require("lazy").setup({
     {
       "nvim-neo-tree/neo-tree.nvim",
       branch = "v3.x",
-      cond = function()
-        return not vim.g.vscode
-      end,
+      cond = not is_vscode,
       dependencies = {
         "nvim-lua/plenary.nvim",
         "nvim-tree/nvim-web-devicons",
@@ -213,9 +211,7 @@ require("lazy").setup({
     -- Copilot
     {
       "github/copilot.vim",
-      cond = function()
-        return not vim.g.vscode
-      end,
+      cond = not is_vscode,
       priority = 999,
       lazy = false
     },
@@ -223,6 +219,7 @@ require("lazy").setup({
     {
       "L3MON4D3/LuaSnip",
       event = "VeryLazy",
+      cond = not is_vscode,
       config = function()
         require("luasnip.loaders.from_lua").load({ paths = "./snippets" })
       end
@@ -231,9 +228,7 @@ require("lazy").setup({
     {
       "williamboman/mason.nvim",
       event = "VeryLazy",
-      cond = function()
-        return not vim.g.vscode
-      end,
+      cond = not is_vscode,
       opts = function(_, opts)
         if not opts.ensure_installed then
           opts.ensure_installed = {}
@@ -249,9 +244,7 @@ require("lazy").setup({
         "williamboman/mason.nvim",
         "williamboman/mason-lspconfig.nvim",
       },
-      cond = function()
-        return not vim.g.vscode
-      end,
+      cond = not is_vscode,
       config = function()
         local capabilities = vim.lsp.protocol.make_client_capabilities()
         capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
@@ -325,6 +318,7 @@ require("lazy").setup({
     {
       "folke/lazydev.nvim",
       ft = "lua",
+      cond = not is_vscode,
       opts = {
         library = {
           { path = "luvit-meta/library", words = { "vim%.uv" } },
@@ -332,17 +326,19 @@ require("lazy").setup({
         },
       },
     },
-    { "justinsgithub/wezterm-types", lazy = true },
-    { "Bilal2453/luvit-meta",        lazy = true },
+    { "justinsgithub/wezterm-types", lazy = true, cond = not is_vscode },
+    { "Bilal2453/luvit-meta",        lazy = true, cond = not is_vscode },
     -- latex
     {
       "andrewferrier/wrapping.nvim",
+      cond = not is_vscode,
       config = function()
         require("wrapping").setup()
       end
     },
     {
       "lervag/vimtex",
+      cond = not is_vscode,
       ft = "tex",
       init = function()
         vim.g.vimtex_compiler_method = 'latexmk'
@@ -396,6 +392,7 @@ require("lazy").setup({
     -- autocompletion
     {
       "hrsh7th/nvim-cmp",
+      cond = not is_vscode,
       dependencies = {
         "hrsh7th/cmp-nvim-lsp",
         "L3MON4D3/LuaSnip",
@@ -458,6 +455,7 @@ require("lazy").setup({
     -- treesitter
     {
       "nvim-treesitter/nvim-treesitter",
+      cond = not is_vscode,
       version = "*",
       build = function()
         require("nvim-treesitter.install").update({ with_sync = true })
@@ -503,14 +501,15 @@ require("lazy").setup({
       end
     },
     {
-      "nvim-treesitter/nvim-treesitter-textobjects", version = "*", after = "nvim-treesitter"
+      "nvim-treesitter/nvim-treesitter-textobjects",
+      version = "*",
+      after = "nvim-treesitter",
+      cond = not is_vscode,
     },
     -- debugger
     {
       "mfussenegger/nvim-dap",
-      cond = function()
-        return not vim.g.vscode
-      end,
+      cond = not is_vscode,
       dependencies = {
         -- fancy UI for the debugger
         {
@@ -591,6 +590,7 @@ require("lazy").setup({
     -- git
     {
       "tpope/vim-fugitive",
+      cond = not is_vscode,
       cmd = "Git",
       --[[keys = {
         { "<leader>gs", "<cmd>Git<cr>",        desc = "Git Status" },
@@ -607,9 +607,7 @@ require("lazy").setup({
       "nvim-telescope/telescope.nvim",
       cmd = "Telescope",
       version = false,
-      cond = function()
-        return not vim.g.vscode
-      end,
+      cond = not is_vscode,
       dependencies = { "nvim-lua/plenary.nvim" },
       keys = {
         --{ "<leader>sf",      "<cmd>Telescope git_files<cr>",                     desc = "Find Files (root dir)" },
@@ -649,7 +647,7 @@ require("lazy").setup({
       "nvim-telescope/telescope-fzf-native.nvim",
       build = "make",
       cond = function()
-        return not is_windows and not vim.g.vscode
+        return not is_windows and not is_vscode
       end,
       config = function()
         require('telescope').load_extension('fzf')
@@ -666,9 +664,7 @@ require("lazy").setup({
         open_mapping = "<C-s>", -- s for shell
         direction = "float",
       },
-      cond = function()
-        return not vim.g.vscode
-      end
+      cond = not is_vscode,
     },
     -- status line
     {
@@ -682,9 +678,7 @@ require("lazy").setup({
           section_separators = '',
         }
       },
-      cond = function()
-        return not vim.g.vscode
-      end
+      cond = not is_vscode,
     },
     -- conda
     {
@@ -693,7 +687,7 @@ require("lazy").setup({
       lazy = false,
       version = "*",
       cond = function()
-        return vim.fn.executable "conda" == 1 and not vim.g.vscode
+        return vim.fn.executable "conda" == 1 and not is_vscode
       end,
     },
     -- hydra
@@ -701,6 +695,7 @@ require("lazy").setup({
       "anuvyklack/hydra.nvim",
       event = "VeryLazy",
       version = "*",
+      cond = not is_vscode,
     },
     -- auto pairing
     --{
@@ -713,12 +708,14 @@ require("lazy").setup({
     -- mini.surround
     {
       "echasnovski/mini.surround",
+      cond = not is_vscode,
       version = "*",
     },
     -- mini.ai
     {
       "echasnovski/mini.ai",
       event = "VeryLazy",
+      cond = not is_vscode,
       dependencies = { "GCBallesteros/NotebookNavigator.nvim" },
       opts = function()
         local nn = require "notebook-navigator"
@@ -728,6 +725,7 @@ require("lazy").setup({
     -- mini.hipatterns
     {
       "echasnovski/mini.hipatterns",
+      cond = not is_vscode,
       event = "VeryLazy",
       dependencies = { "GCBallesteros/NotebookNavigator.nvim" },
       opts = function()
@@ -801,6 +799,7 @@ require("lazy").setup({
     -- https://github.com/benlubas/molten-nvim/blob/main/docs/Probably-Too-Quick-Start-Guide.md
     {
       "benlubas/molten-nvim",
+      cond = not is_vscode,
       dependencies = { "nvim-lua/plenary.nvim", "3rd/image.nvim" },
       version = "*", -- use version <2.0.0 to avoid breaking changes
       build = ":UpdateRemotePlugins",
@@ -836,7 +835,7 @@ require("lazy").setup({
       }
     },]]
     -- show indent guides on blank lines
-    { "lukas-reineke/indent-blankline.nvim", main = "ibl", opts = {} },
+    { "lukas-reineke/indent-blankline.nvim", main = "ibl", opts = {}, cond = not is_vscode },
     -- tmux
     --[[{
     "aserowy/tmux.nvim",
@@ -855,60 +854,13 @@ require("lazy").setup({
   },]]
     {
       "mbbill/undotree",
+      cond = not is_vscode,
       keys = {
         { "<leader>tt", function() vim.cmd.UndotreeToggle() end, desc = "Toggle Undotree" },
         { "<leader>tf", function() vim.cmd.UndotreeFocus() end,  desc = "Focus Undotree" },
       },
     },
-    -- Refactoring plugin (experimental)
-    {
-      "ThePrimeagen/refactoring.nvim",
-      dependencies = {
-        "nvim-lua/plenary.nvim",
-        "nvim-treesitter/nvim-treesitter",
-      },
-      config = function()
-        require("telescope").load_extension "refactoring"
-      end,
-      keys = {
-        { "<leader>rf", "<cmd>lua require('telescope').extensions.refactoring.refactors()<cr>", desc = "Refactor" },
-      },
-    },
-    -- Obsidian-like notetaking
-    {
-      "epwalsh/obsidian.nvim",
-      version = "*",
-      cond = function()
-        return not vim.g.vscode
-      end,
-      ft = "markdown",
-      lazy = true,
-      dependencies = {
-        "nvim-lua/plenary.nvim",
-        "nvim-lua/popup.nvim",
-        "nvim-telescope/telescope.nvim",
-        "nvim-treesitter/nvim-treesitter",
-      },
-      setup = function()
-        local function read_workpaces()
-          -- Read environment variable "OBSIDIAN_WORKSPACES", split by semicolons
-          local paths = vim.split(vim.env.OBSIDIAN_WORKSPACES or "", ";")
-          local workspaces = {}
-          for _, path in ipairs(paths) do
-            -- Take the last part of the path as the workspace name
-            local name = vim.fn.fnamemodify(path, ":t")
-            table.insert(workspaces, { path = path, name = name })
-          end
-          return workspaces
-        end
-        require("obsidian").setup(
-          {
-            workspaces = read_workspaces(),
-          }
-        )
-      end,
-    },
-  },
+  }
 })
 
 
