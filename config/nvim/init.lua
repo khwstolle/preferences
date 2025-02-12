@@ -734,14 +734,20 @@ require("lazy").setup({
         return { highlighters = { cells = nn.minihipatterns_spec } }
       end,
     },
-    -- wezterm
-    -- https://github.com/willothy/wezterm.nvim
+    -- WezTerm
     {
       'willothy/wezterm.nvim',
       config = true,
       cond = function()
-        return vim.fn.executable "wezterm" == 1 and not vim.g.vscode
+        return vim.fn.executable "wezterm" == 1 and not is_vscode
       end,
+    },
+    {
+      'mrjones2014/smart-splits.nvim',
+      cond = function()
+        return vim.fn.executable "wezterm" == 1 and not is_vscode
+      end,
+      build = './kitty/install-kittens.bash'
     },
     -- images
     -- https://github.com/3rd/image.nvim

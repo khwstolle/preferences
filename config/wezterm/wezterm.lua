@@ -1,7 +1,7 @@
 -- https://wezfurlong.org/wezterm/
 
-local wez = require "wezterm"
-local config = wez.config_builder()
+local wezterm = require "wezterm"
+local config = wezterm.config_builder()
 
 config:set_strict_mode(true)
 
@@ -13,9 +13,9 @@ end
     if os.getenv("COLOR_THEME") then
         return os.getenv("COLOR_THEME")
     end
-    -- Second check `wez.gui` (not available to the mux server)
-    if wez.gui then
-        return wez.gui.get_appearance()
+    -- Second check `wezterm.gui` (not available to the mux server)
+    if wezterm.gui then
+        return wezterm.gui.get_appearance()
     end
     -- Fallback to dark mode
     return "Dark"
@@ -23,25 +23,25 @@ end]]
 
 
 -- OS specific configuration
-local is_windows = wez.target_triple == "x86_64-pc-windows-msvc"
+local is_windows = wezterm.target_triple == "x86_64-pc-windows-msvc"
 local is_light = get_apperance():lower():find "light"
 
 if is_windows then
+    -- Windows-specific configurations
     config.default_prog       = { "pwsh.exe", "-NoLogo" }
-    --config.default_domain = "WSL:Utils"
-    --config.ssh_backend = "Ssh2" -- TODO check whether this is more stable than libssh
     config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
 else
-    config.window_decorations = "RESIZE"
+    -- Assuming a Unix-like environment
+    --config.window_decorations = "RESIZE"
     --config.window_decorations = "NONE"
     config.integrated_title_button_style = "Gnome"
-    config.default_prog = { os.getenv("SHELL") or "bash" }
+    config.default_prog = { "/usr/bin/bash", "-l", "-i" }
 end
 
 -- Appearance
 -- "iTerm2 Tango Dark" or "iTerm2 Tango Light" also work well for some themselves
 local themeName = is_light and "Catppuccin Latte" or "Catppuccin Mocha"
-local theme = wez.color.get_builtin_schemes()[themeName]
+local theme = wezterm.color.get_builtin_schemes()[themeName]
 
 -- Specific adjustments
 if themeName == "Catppuccin Mocha" then
@@ -97,12 +97,16 @@ config.color_schemes             = {
 config.color_scheme              = "User"
 
 -- Misc
-config.enable_wayland            = false
+config.enable_wayland            = true
 --config.canonicalize_pasted_newlines               = 'None'
 config.term                      = 'wezterm'
-config.font                      = wez.font("JetBrainsMono Nerd Font", { weight = 400 })
-config.font_size                 = 11.0
+config.font                      = wezterm.font_with_fallback({
+    wezterm.font({ "JetBrainsMono Nerd Font", { weight = 500 } }),
+    "Noto Color Emoji",
+})
+config.font_size                 = 10.0
 config.default_cursor_style      = "BlinkingBar"
+config.freetype_load_target      = "Light"
 
 -- Support KITTY features
 config.enable_kitty_graphics     = true
@@ -125,14 +129,24 @@ config.window_close_confirmation = "NeverPrompt"
 -- Tab bar
 config.enable_tab_bar               = true
 config.hide_tab_bar_if_only_one_tab = false
-config.use_fancy_tab_bar            = false
+config.use_fancy_tab_bar            = true
 
 -- Launch menu
-config.launch_menu                  = {}
+config.launch_menu                  = {
+    {
+        label = "System monitor", -- create side-by-side monitoring with nvtop and htop
+        args = { "nvtop" },
+
+    },
+    {
+        label = "Tmux",
+        args = { "tmux", "new-session", "-A", "-s", "wezterm" },
+    }
+}
 
 -- Rendering
 local function find_gpu(spec)
-    for _, gpu in ipairs(wez.gui.enumerate_gpus()) do
+    for _, gpu in ipairs(wezterm.gui.enumerate_gpus()) do
         if gpu.backend:find(spec.backend) and gpu.device_type:find(spec.device_type) then
             return gpu
         end
@@ -153,23 +167,39 @@ end
 -- config.webgpu_power_preference = "LowPower"
 config.max_fps = 60
 config.front_end = "WebGpu"
--- Bindings
+config.animation_fps = 1
+config.cursor_blink_ease_in = 'Constant'
+config.cursor_blink_ease_out = 'Constant'
+
+-- Plugins
+local modal = wezterm.plugin.require("https://github.com/MLFlexer/modal.wezterm")
+modal.apply_to_config(config)
+
+local wezterm = require('wezterm')
+local wezterm_config_nvim = wezterm.plugin.require('https://github.com/winter-again/wezterm-config.nvim')
+wezterm.on('user-var-changed', function(window, pane, name, value)
+    local overrides = window:get_config_overrides() or {}
+    overrides = wezterm_config_nvim.override_user_var(overrides, name, value)
+    window:set_config_overrides(overrides)
+end)
+
+--Bindings
 config.mouse_bindings = {
     {
         event = { Down = { streak = 3, button = "Left" } },
-        action = wez.action.SelectTextAtMouseCursor "SemanticZone",
+        action = wezterm.action.SelectTextAtMouseCursor "SemanticZone",
         mods = "NONE",
     },
     {
         event = { Down = { streak = 1, button = "Right" } },
         mods = "NONE",
-        action = wez.action_callback(function(window, pane)
+        action = wezterm.action_callback(function(window, pane)
             local has_selection = window:get_selection_text_for_pane(pane) ~= ""
             if has_selection then
-                window:perform_action(wez.action.CopyTo("ClipboardAndPrimarySelection"), pane)
-                window:perform_action(wez.action.ClearSelection, pane)
+                window:perform_action(wezterm.action.CopyTo("ClipboardAndPrimarySelection"), pane)
+                window:perform_action(wezterm.action.ClearSelection, pane)
             else
-                window:perform_action(wez.action({ PasteFrom = "Clipboard" }), pane)
+                window:perform_action(wezterm.action({ PasteFrom = "Clipboard" }), pane)
             end
         end),
     },
@@ -179,40 +209,43 @@ config.leader = { key = "b", mods = "CTRL" }
 config.disable_default_key_bindings = true
 config.keys = {
     -- Passthrough double LEADER (CTRL-B)
-    { key = config.leader.key, mods = "LEADER|CTRL",  action = wez.action.SendString("\x02") },
+    { key = config.leader.key, mods = "LEADER|CTRL",  action = wezterm.action.SendString("\x02") },
     -- Copy/Paste
-    { key = "c",               mods = "CTRL|SHIFT",   action = wez.action.CopyTo "Clipboard" },
-    { key = "v",               mods = "CTRL|SHIFT",   action = wez.action.PasteFrom "Clipboard" },
+    { key = "c",               mods = "CTRL|SHIFT",   action = wezterm.action.CopyTo "Clipboard" },
+    { key = "v",               mods = "CTRL|SHIFT",   action = wezterm.action.PasteFrom "Clipboard" },
     -- Show launcher
-    { key = "c",               mods = "LEADER|CTRL",  action = wez.action.ShowLauncherArgs { flags = "LAUNCH_MENU_ITEMS|DOMAINS|WORKSPACES", } },
+    { key = "c",               mods = "LEADER|CTRL",  action = wezterm.action.ShowLauncherArgs { flags = "LAUNCH_MENU_ITEMS|DOMAINS|WORKSPACES", } },
     -- Show tab switcher
-    { key = "Tab",             mods = "LEADER",       action = wez.action.ShowTabNavigator },
+    { key = "Tab",             mods = "LEADER",       action = wezterm.action.ShowTabNavigator },
     -- Show command palette
-    { key = "Space",           mods = "LEADER",       action = wez.action.ActivateCommandPalette },
+    { key = "Space",           mods = "LEADER",       action = wezterm.action.ActivateCommandPalette },
     -- Tmux-like Keybindings
     -- https://gist.github.com/quangIO/556fa4abca46faf40092282d0c11a367
-    { key = "\"",              mods = "LEADER|SHIFT", action = wez.action { SplitVertical = { domain = "CurrentPaneDomain" } } },
-    { key = "%",               mods = "LEADER|SHIFT", action = wez.action { SplitHorizontal = { domain = "CurrentPaneDomain" } } },
+    { key = "\"",              mods = "LEADER|SHIFT", action = wezterm.action { SplitVertical = { domain = "CurrentPaneDomain" } } },
+    { key = "%",               mods = "LEADER|SHIFT", action = wezterm.action { SplitHorizontal = { domain = "CurrentPaneDomain" } } },
     { key = "z",               mods = "LEADER",       action = "TogglePaneZoomState" },
-    { key = "c",               mods = "LEADER",       action = wez.action { SpawnTab = "CurrentPaneDomain" } },
-    { key = "h",               mods = "LEADER",       action = wez.action { ActivatePaneDirection = "Left" } },
-    { key = "j",               mods = "LEADER",       action = wez.action { ActivatePaneDirection = "Down" } },
-    { key = "k",               mods = "LEADER",       action = wez.action { ActivatePaneDirection = "Up" } },
-    { key = "l",               mods = "LEADER",       action = wez.action { ActivatePaneDirection = "Right" } },
-    { key = "H",               mods = "LEADER|SHIFT", action = wez.action { AdjustPaneSize = { "Left", 5 } } },
-    { key = "J",               mods = "LEADER|SHIFT", action = wez.action { AdjustPaneSize = { "Down", 5 } } },
-    { key = "K",               mods = "LEADER|SHIFT", action = wez.action { AdjustPaneSize = { "Up", 5 } } },
-    { key = "L",               mods = "LEADER|SHIFT", action = wez.action { AdjustPaneSize = { "Right", 5 } } },
-    { key = "1",               mods = "LEADER",       action = wez.action { ActivateTab = 0 } },
-    { key = "2",               mods = "LEADER",       action = wez.action { ActivateTab = 1 } },
-    { key = "3",               mods = "LEADER",       action = wez.action { ActivateTab = 2 } },
-    { key = "4",               mods = "LEADER",       action = wez.action { ActivateTab = 3 } },
-    { key = "5",               mods = "LEADER",       action = wez.action { ActivateTab = 4 } },
-    { key = "6",               mods = "LEADER",       action = wez.action { ActivateTab = 5 } },
-    { key = "7",               mods = "LEADER",       action = wez.action { ActivateTab = 6 } },
-    { key = "8",               mods = "LEADER",       action = wez.action { ActivateTab = 7 } },
-    { key = "9",               mods = "LEADER",       action = wez.action { ActivateTab = 8 } },
-    { key = "&",               mods = "LEADER|SHIFT", action = wez.action { CloseCurrentTab = { confirm = true } } },
-    { key = "x",               mods = "LEADER",       action = wez.action { CloseCurrentPane = { confirm = true } } },
+    { key = "c",               mods = "LEADER",       action = wezterm.action { SpawnTab = "CurrentPaneDomain" } },
+    { key = "h",               mods = "LEADER",       action = wezterm.action { ActivatePaneDirection = "Left" } },
+    { key = "j",               mods = "LEADER",       action = wezterm.action { ActivatePaneDirection = "Down" } },
+    { key = "k",               mods = "LEADER",       action = wezterm.action { ActivatePaneDirection = "Up" } },
+    { key = "l",               mods = "LEADER",       action = wezterm.action { ActivatePaneDirection = "Right" } },
+    { key = "H",               mods = "LEADER|SHIFT", action = wezterm.action { AdjustPaneSize = { "Left", 5 } } },
+    { key = "J",               mods = "LEADER|SHIFT", action = wezterm.action { AdjustPaneSize = { "Down", 5 } } },
+    { key = "K",               mods = "LEADER|SHIFT", action = wezterm.action { AdjustPaneSize = { "Up", 5 } } },
+    { key = "L",               mods = "LEADER|SHIFT", action = wezterm.action { AdjustPaneSize = { "Right", 5 } } },
+    { key = "1",               mods = "LEADER",       action = wezterm.action { ActivateTab = 0 } },
+    { key = "2",               mods = "LEADER",       action = wezterm.action { ActivateTab = 1 } },
+    { key = "3",               mods = "LEADER",       action = wezterm.action { ActivateTab = 2 } },
+    { key = "4",               mods = "LEADER",       action = wezterm.action { ActivateTab = 3 } },
+    { key = "5",               mods = "LEADER",       action = wezterm.action { ActivateTab = 4 } },
+    { key = "6",               mods = "LEADER",       action = wezterm.action { ActivateTab = 5 } },
+    { key = "7",               mods = "LEADER",       action = wezterm.action { ActivateTab = 6 } },
+    { key = "8",               mods = "LEADER",       action = wezterm.action { ActivateTab = 7 } },
+    { key = "9",               mods = "LEADER",       action = wezterm.action { ActivateTab = 8 } },
+    { key = "&",               mods = "LEADER|SHIFT", action = wezterm.action { CloseCurrentTab = { confirm = true } } },
+    { key = "x",               mods = "LEADER",       action = wezterm.action { CloseCurrentPane = { confirm = true } } },
 }
+
+
+
 return config
