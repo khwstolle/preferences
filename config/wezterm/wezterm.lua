@@ -6,10 +6,8 @@ local config = wezterm.config_builder()
 config:set_strict_mode(true)
 
 -- Utilities
-local function get_apperance()
-    return "Dark"
-end
---[[  -- First check the COLOR_THEME environment variable
+local function get_appearance()
+    -- First check the COLOR_THEME environment variable
     if os.getenv("COLOR_THEME") then
         return os.getenv("COLOR_THEME")
     end
@@ -19,12 +17,12 @@ end
     end
     -- Fallback to dark mode
     return "Dark"
-end]]
+end
 
 
 -- OS specific configuration
 local is_windows = wezterm.target_triple == "x86_64-pc-windows-msvc"
-local is_light = get_apperance():lower():find "light"
+local is_light = get_appearance():lower() == "light"
 
 if is_windows then
     -- Windows-specific configurations
@@ -32,24 +30,27 @@ if is_windows then
     config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
 else
     -- Assuming a Unix-like environment
-    --config.window_decorations = "RESIZE"
-    --config.window_decorations = "NONE"
     config.integrated_title_button_style = "Gnome"
+    config.window_decorations = "NONE"
     config.default_prog = { "/usr/bin/bash", "-l", "-i" }
 end
 
 -- Appearance
--- "iTerm2 Tango Dark" or "iTerm2 Tango Light" also work well for some themselves
-local themeName = is_light and "Catppuccin Latte" or "Catppuccin Mocha"
+-- "iTerm2 Tango Dark" or "iTerm2 Tango Light"
+local themeName
+if is_light then
+    themeName = "iTerm2 Tango Light"
+else
+    themeName = "Catppuccin Mocha"
+end
 local theme = wezterm.color.get_builtin_schemes()[themeName]
 
 -- Specific adjustments
 if themeName == "Catppuccin Mocha" then
-    theme.background = "#13131F"
+    -- theme.background = "#13131F"
 end
 --
 -- Aspecific adjustments
-assert(theme, "Color scheme not found")
 if is_light then
     config.window_background_opacity = 1.0
     -- config.foreground_text_hsb = {
@@ -63,7 +64,7 @@ else
         config.window_background_opacity = 0.2
         theme.background = "#000000"
     else
-        config.window_background_opacity = 1.0
+        --config.window_background_opacity = 0.85
         --theme.background = "#010101"
     end
     -- config.foreground_text_hsb = {
@@ -72,61 +73,42 @@ else
     --     brightness = 1.5,
     -- }
     --
-    theme.tab_bar = {
-        background = theme.background,
-        inactive_tab_edge = 'rgba(28, 28, 28, 0.9)',
-        active_tab = {
-            bg_color = theme.background,
-            fg_color = '#c0c0c0',
-        },
-        inactive_tab = {
-            bg_color = theme.background,
-            fg_color = '#808080',
-        },
-        inactive_tab_hover = {
-            bg_color = theme.background,
-            fg_color = '#808080',
-        },
-    }
+    --theme.tab_bar = {
+    --    background = theme.background,
+    --    inactive_tab_edge = 'rgba(28, 28, 28, 0.9)',
+    --    active_tab = {
+    --        bg_color = theme.background,
+    --        fg_color = '#c0c0c0',
+    --    },
+    --    inactive_tab = {
+    --        bg_color = theme.background,
+    --        fg_color = '#808080',
+    --    },
+    --    inactive_tab_hover = {
+    --        bg_color = theme.background,
+    --        fg_color = '#808080',
+    --    },
+    --}
 end
-config.command_palette_font_size = 11.0
-config.command_palette_bg_color  = '#000000'
-config.color_schemes             = {
+config.command_palette_font_size    = 11.0
+config.color_schemes                = {
     ["User"] = theme
 }
-config.color_scheme              = "User"
+config.color_scheme                 = 'User'
 
 -- Misc
-config.enable_wayland            = true
---config.canonicalize_pasted_newlines               = 'None'
-config.term                      = 'wezterm'
-config.font                      = wezterm.font_with_fallback({
-    wezterm.font({ "JetBrainsMono Nerd Font", { weight = 500 } }),
+config.enable_wayland               = true
+config.term                         = 'wezterm'
+config.font                         = wezterm.font_with_fallback({
+    { family = "JetBrainsMono Nerd Font", weight = 500 },
     "Noto Color Emoji",
 })
-config.font_size                 = 10.0
-config.default_cursor_style      = "BlinkingBar"
-config.freetype_load_target      = "Light"
-
--- Support KITTY features
-config.enable_kitty_graphics     = true
+config.font_size                    = 10.0
+config.default_cursor_style         = "BlinkingBar"
+config.freetype_load_target         = "Light"
+config.enable_kitty_graphics        = true
 --config.enable_kitty_keyboard                      = true
-
--- Window
---config.adjust_window_size_when_changing_font_size = false
-config.window_close_confirmation = "NeverPrompt"
---[[config.window_padding                             = {
-    left = 1,
-    right = 1,
-    top = 1,
-    bottom = 1,
-}]]
---config.window_frame                               = {
---    font_size = is_windows and 12.0 or 14.0,
---    active_titlebar_bg = theme.background,
---    inactive_titlebar_bg = theme.background,
---}
--- Tab bar
+config.window_close_confirmation    = "NeverPrompt"
 config.enable_tab_bar               = true
 config.hide_tab_bar_if_only_one_tab = false
 config.use_fancy_tab_bar            = true
