@@ -1,16 +1,14 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
 format = """
-[](fg:login)\
-$os\
+\\[\
 $username\
-$hostname\
-[](fg:login bg:directory)\
+($hostname)\
 $directory\
-[](fg:directory bg:git)\
 $git_branch\
 $git_status\
-[](fg:git bg:environment)\
+\\]\
+(\\[\
 $c\
 $elixir\
 $elm\
@@ -24,37 +22,38 @@ $nodejs\
 $nim\
 $rust\
 $docker_context\
-[ ](fg:environment)\
-$fill\
-$time
-$character
+\\])\
+$character\
 """
+# $fill\
+# $time\
+# $character
+# """
 # We use the `fill` module instead
-right_format = ''
+right_format = '$time'
 
 # Timeouts
 scan_timeout = 50
-command_timeout = 1000
+command_timeout = 500
 
 # Adds a newline after each command
-add_newline = false
+add_newline = true
 
 # Colors
 palette = 'kurt'
 
 [palettes.kurt]
-login = "#9A348E"
-directory = "#DA627D"
-git = "#FCA17D"
-environment = "#86BBD8"
+login = "#909090"
+directory = "#808080"
+environment = "#707070"
 
 # Prompt character
 [character]
 disabled = false
 format = '$symbol '
-success_symbol = '[](bold green)'
-error_symbol = '[](bold red)'
-vimcmd_symbol = '[](bold yellow)'
+success_symbol = '[\$](bold green)'
+error_symbol = '[\$](bold red)'
+vimcmd_symbol = '[!](bold yellow)'
 vimcmd_replace_one_symbol = '[](bold yellow)'
 vimcmd_replace_symbol = '[](bold yellow)'
 vimcmd_visual_symbol = '[](bold yellow)'
@@ -63,20 +62,20 @@ vimcmd_visual_symbol = '[](bold yellow)'
 [fill]
 disabled = false
 symbol = '·'
-style = 'bold black'
+style= 'white'
 
 # Login
 [username]
 show_always = true
-style_user = "bg:login"
-style_root = "bg:login"
+style_user = "white"
+style_root = "white"
 format = '[$user]($style)'
 disabled = false
 
 [hostname]
 disabled = false
-style = "bg:login"
-format = '[ @ $hostname ]($style)'
+style = "white"
+format = '[@$hostname ]($style)'
 ssh_only = false
 
 [localip]
@@ -84,13 +83,13 @@ ssh_only = false
 disabled = true
 
 [os]
-style = "bg:login"
+style = "white"
 disabled = true
 
 # Location
 [directory]
-style = "bg:directory"
-format = "[ $path ]($style)"
+style = "white"
+format = "[ $path]($style)"
 truncation_length = 6
 truncation_symbol = "…/"
 
@@ -109,7 +108,7 @@ truncation_symbol = "…/"
 disabled = false
 time_format = "%R %d-%m-%Y"
 use_12hr = false
-#style = 'bold white'
+style= 'white'
 format = '[$time]($style)'
 
 # Environments
@@ -117,78 +116,78 @@ format = '[$time]($style)'
 [conda]
 disabled = false
 symbol = "󱔎 "
-style = "bg:environment"
+style = "white"
 format = '[ $symbol$environment ]($style)'
 
 [c]
 symbol = " "
-style = "bg:environment"
+style = "white"
 format = '[ $symbol ($version) ]($style)'
 
 [docker_context]
 symbol = " "
-style = "bg:environment"
+style = "white"
 format = '[ $symbol $context ]($style)'
 
 [elixir]
 symbol = " "
-style = "bg:environment"
+style = "white"
 format = '[ $symbol ($version) ]($style)'
 
 [elm]
 symbol = " "
-style = "bg:environment"
+style = "white"
 format = '[ $symbol ($version) ]($style)'
 
 [git_branch]
 symbol = ""
-style = "bg:git"
-format = '[ $symbol $branch ]($style)'
+style = "white"
+format = '[ on $symbol $branch]($style)'
 
 [git_status]
-style = "bg:git"
-format = '[$all_status$ahead_behind ]($style)'
+style = "white"
+format = '[\($all_status$ahead_behind\)]($style)'
 
 [golang]
 symbol = " "
-style = "bg:environment"
+style = "white"
 format = '[ $symbol ($version) ]($style)'
 
 [gradle]
-style = "bg:environment"
+style = "white"
 format = '[ $symbol ($version) ]($style)'
 
 [haskell]
 symbol = " "
-style = "bg:environment"
+style = "white"
 format = '[ $symbol ($version) ]($style)'
 
 [java]
 symbol = " "
-style = "bg:environment"
+style = "white"
 format = '[ $symbol ($version) ]($style)'
 
 [julia]
 symbol = " "
-style = "bg:environment"
+style = "white"
 format = '[ $symbol ($version) ]($style)'
 
 [nodejs]
 symbol = ""
-style = "bg:environment"
+style = "white"
 format = '[ $symbol ($version) ]($style)'
 
 [nim]
 symbol = "󰆥 "
-style = "bg:environment"
+style = "white"
 format = '[ $symbol ($version) ]($style)'
 
 [rust]
 symbol = ""
-style = "bg:environment"
+style = "white"
 format = '[ $symbol ($version) ]($style)'
 
 [scala]
 symbol = " "
-style = "bg:environment"
+style = "white"
 format = '[ $symbol ($version) ]($style)'

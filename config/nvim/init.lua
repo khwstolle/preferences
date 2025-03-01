@@ -28,8 +28,13 @@ opt.fileencoding = "utf-8"
 opt.breakindent = true
 
 -- providers
-vim.g.python3_host_prog = home .. "/.venvs/nvim/bin/python3"
-vim.g.node_host_prog = home .. '/.local/bin/nvim-node'
+if is_windows then
+  vim.g.python3_host_prog = home .. "/.venvs/nvim/bin/python3"
+  vim.g.node_host_prog = home .. "/.local/bin/nvim-node"
+else
+  vim.g.python3_host_prog = home .. "/AppData/Roaming/uv/python/cpython-3.13.2-windows-x86_64-none/python.exe" 
+  --vim.g.node_host_prog = "C:/nvm4w/nodejs/node.EXE"
+end
 
 -- clipboard
 -- this is handled by a plugin instead

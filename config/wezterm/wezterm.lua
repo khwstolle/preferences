@@ -97,16 +97,19 @@ config.color_schemes                = {
 config.color_scheme                 = 'User'
 
 -- Misc
-config.enable_wayland               = true
-config.term                         = 'wezterm'
-config.font                         = wezterm.font_with_fallback({
-    { family = "JetBrainsMono Nerd Font", weight = 500 },
-    "Noto Color Emoji",
-})
-config.font_size                    = 10.0
-config.default_cursor_style         = "BlinkingBar"
-config.freetype_load_target         = "Light"
-config.enable_kitty_graphics        = true
+config.enable_wayland            = true
+--config.canonicalize_pasted_newlines               = 'None'
+config.term                      = 'wezterm'
+-- config.font                      = wezterm.font_with_fallback({
+    -- wezterm.font({ "JetBrainsMono Nerd Font", { weight = 500 } }),
+    -- "Noto Color Emoji",
+-- })
+config.font_size                 = 10.0
+config.default_cursor_style      = "BlinkingBar"
+config.freetype_load_target      = "Light"
+
+-- Support KITTY features
+config.enable_kitty_graphics     = true
 --config.enable_kitty_keyboard                      = true
 config.window_close_confirmation    = "NeverPrompt"
 config.enable_tab_bar               = true
@@ -147,11 +150,11 @@ end
 --      end
 --  end
 -- config.webgpu_power_preference = "LowPower"
-config.max_fps = 60
-config.front_end = "WebGpu"
-config.animation_fps = 1
-config.cursor_blink_ease_in = 'Constant'
-config.cursor_blink_ease_out = 'Constant'
+--config.max_fps = 60
+--config.front_end = "WebGpu"
+--config.animation_fps = 1
+--config.cursor_blink_ease_in = 'Constant'
+--config.cursor_blink_ease_out = 'Constant'
 
 -- Plugins
 local modal = wezterm.plugin.require("https://github.com/MLFlexer/modal.wezterm")
